@@ -1,0 +1,13 @@
+{
+  "projects": {},
+  "targets": {
+    "oto-randevu-58022": {
+      "hosting": {
+        "saygiliford": [
+          "saygiliford-randevu"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

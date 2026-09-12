@@ -1,0 +1,38 @@
+node_modules
+dist
+
+.env
+.env.*
+!.env.example
+!.env.e2e.example
+*.local
+
+.DS_Store
+
+.vscode/*
+!.vscode/extensions.json
+
+# Test outputs
+playwright-report/
+test-results/
+coverage/
+
+# Firebase local/cache files
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# Logs
+*.log
+
+# Local helper scripts
+*.cmd
+
+# Old development/version notes
+README_V*.md
+KONTROL_NOTLARI*.txt
+FORD_MODEL_LISTESI.md
+
+# Legacy Firebase migration files
+firebase.bridge.json
+firestore.bridge.rules

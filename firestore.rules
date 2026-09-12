@@ -1,0 +1,171 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.active == true;
+    }
+
+    function validString(value, minimum, maximum) {
+      return value is string
+        && value.size() >= minimum
+        && value.size() <= maximum;
+    }
+
+    function validPlate(value) {
+      return value is string
+        && value.matches('^(0[1-9]|[1-7][0-9]|8[01]) [A-Z]{1,3} [0-9]{2,4}$');
+    }
+
+    function validFordVehicle() {
+      let id = request.resource.data.vehicleModelId;
+      let model = request.resource.data.vehicleModel;
+      return request.resource.data.vehicleBrand == 'Ford'
+        && (
+          (id == 'focus' && model == 'Focus')
+          || (id == 'fiesta' && model == 'Fiesta')
+          || (id == 'mondeo' && model == 'Mondeo')
+          || (id == 'fusion' && model == 'Fusion')
+          || (id == 'b-max' && model == 'B-Max')
+          || (id == 'c-max' && model == 'C-Max')
+          || (id == 'ecosport' && model == 'EcoSport')
+          || (id == 'kuga' && model == 'Kuga')
+          || (id == 'puma' && model == 'Puma')
+          || (id == 'ranger' && model == 'Ranger')
+          || (id == 'tourneo-courier' && model == 'Tourneo Courier')
+          || (id == 'transit-courier' && model == 'Transit Courier')
+          || (id == 'tourneo-connect' && model == 'Tourneo Connect')
+          || (id == 'transit-connect' && model == 'Transit Connect')
+          || (id == 'tourneo-custom' && model == 'Tourneo Custom')
+          || (id == 'transit-custom' && model == 'Transit Custom')
+          || (id == 'transit' && model == 'Transit (Genel)')
+          || (id == 'escort' && model == 'Escort')
+        );
+    }
+
+    function validNewAppointment() {
+      let settingsData = get(/databases/$(database)/documents/shopSettings/main).data;
+      let planningData = get(/databases/$(database)/documents/servicePlanning/main).data;
+      let modelData = planningData.models[request.resource.data.vehicleModelId];
+      let serviceData = modelData.services[request.resource.data.serviceId];
+      let definitionData = planningData.serviceDefinitions[request.resource.data.serviceId];
+
+      return request.resource.data.keys().hasOnly([
+          'fullName', 'phone', 'vehicle', 'vehicleBrand', 'vehicleModel', 'vehicleModelId',
+          'vehicleYear', 'mileage', 'plate', 'fuelType',
+          'serviceId', 'serviceName', 'serviceCategory', 'serviceDurationMinutes',
+          'note', 'date', 'time', 'endTime', 'resourceNumber', 'resourceLabel',
+          'reservationIds', 'status', 'createdAt'
+        ])
+        && validString(request.resource.data.fullName, 2, 80)
+        && validString(request.resource.data.phone, 10, 15)
+        && validString(request.resource.data.vehicle, 3, 100)
+        && validString(request.resource.data.vehicleBrand, 2, 40)
+        && validString(request.resource.data.vehicleModel, 1, 50)
+        && validString(request.resource.data.vehicleModelId, 1, 80)
+        && validFordVehicle()
+        && validString(request.resource.data.vehicleYear, 4, 4)
+        && request.resource.data.mileage is int
+        && request.resource.data.mileage >= 0
+        && request.resource.data.mileage <= 999999
+        && validPlate(request.resource.data.plate)
+        && request.resource.data.fuelType in ['gasoline', 'lpg', 'diesel']
+        && validString(request.resource.data.serviceId, 1, 80)
+        && validString(request.resource.data.serviceName, 2, 100)
+        && validString(request.resource.data.serviceCategory, 1, 60)
+        && request.resource.data.serviceDurationMinutes is int
+        && request.resource.data.serviceDurationMinutes >= 15
+        && request.resource.data.serviceDurationMinutes <= 720
+        && request.resource.data.serviceDurationMinutes % 5 == 0
+        && validString(request.resource.data.note, 0, 500)
+        && validString(request.resource.data.date, 10, 10)
+        && validString(request.resource.data.time, 5, 5)
+        && validString(request.resource.data.endTime, 5, 5)
+        && request.resource.data.resourceNumber is int
+        && request.resource.data.resourceNumber >= 1
+        && request.resource.data.resourceNumber <= settingsData.resourceCount
+        && validString(request.resource.data.resourceLabel, 3, 30)
+        && request.resource.data.reservationIds is list
+        && request.resource.data.reservationIds.size() >= 1
+        && request.resource.data.reservationIds.size() <= 144
+        && request.resource.data.status == 'confirmed'
+        && request.resource.data.createdAt == request.time
+        && modelData.active == true
+        && serviceData.active == true
+        && request.resource.data.serviceName == definitionData.name
+        && request.resource.data.serviceCategory == definitionData.category
+        && request.resource.data.serviceDurationMinutes == serviceData.durationMinutes
+        && request.resource.data.reservationIds.size() * 5 == request.resource.data.serviceDurationMinutes;
+    }
+
+    function validReservationCreate(reservationId) {
+      let appointmentData = getAfter(/databases/$(database)/documents/appointments/$(request.resource.data.appointmentId)).data;
+      return request.resource.data.keys().hasOnly([
+          'appointmentId', 'date', 'time', 'resourceNumber', 'unitMinutes', 'createdAt'
+        ])
+        && validString(request.resource.data.appointmentId, 1, 120)
+        && validString(request.resource.data.date, 10, 10)
+        && validString(request.resource.data.time, 5, 5)
+        && request.resource.data.resourceNumber is int
+        && request.resource.data.resourceNumber >= 1
+        && request.resource.data.resourceNumber <= 6
+        && request.resource.data.unitMinutes == 5
+        && request.resource.data.createdAt == request.time
+        && appointmentData.status == 'confirmed'
+        && appointmentData.date == request.resource.data.date
+        && appointmentData.resourceNumber == request.resource.data.resourceNumber
+        && appointmentData.reservationIds.hasAny([reservationId]);
+    }
+
+    match /appointments/{appointmentId} {
+      allow create: if validNewAppointment();
+      allow read: if isAdmin();
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.status in ['pending', 'confirmed', 'arrived', 'in_progress', 'completed', 'cancelled']
+        && request.resource.data.updatedAt == request.time
+        && !(resource.data.status == 'cancelled' && request.resource.data.status != 'cancelled');
+      allow delete: if isAdmin();
+    }
+
+    match /reservations/{reservationId} {
+      allow read: if true;
+      allow create: if validReservationCreate(reservationId);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // Müşteri süreleri okuyabilir; yalnız aktif admin süreleri değiştirebilir.
+    match /servicePlanning/{documentId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Eski hizmet koleksiyonu yeni planlama ekranında kullanılmaz; geçmiş uyumluluğu için okunabilir kalır.
+    match /services/{serviceId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /shopSettings/{documentId} {
+      allow read: if true;
+      allow create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /slots/{slotId} {
+      allow read: if true;
+      allow create, update: if false;
+      allow delete: if isAdmin();
+    }
+
+    match /admins/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+  }
+}
