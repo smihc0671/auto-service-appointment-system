@@ -219,3 +219,36 @@ This project demonstrates the development of a real-world appointment management
 ## Developer
 
 **Semih Can Kasar**
+
+## Screenshots
+
+### Customer Appointment Interface
+
+The customer-facing interface provides workshop information and a guided appointment booking experience.
+
+![Customer Home](docs/screenshots/customer-home.png)
+
+### Dynamic Service Scheduling
+
+Available appointment times are calculated automatically according to the selected vehicle model, service duration, existing reservations and workshop capacity.
+
+![Dynamic Scheduling](docs/screenshots/customer-scheduling.png)
+
+### Appointment Form
+
+Customers provide vehicle and service information through a structured booking form without creating an account.
+
+![Appointment Form](docs/screenshots/customer-booking-form.png)
+
+### Admin Scheduling Dashboard
+
+The administration panel displays workshop resource availability and the daily service schedule.
+
+![Admin Schedule](docs/screenshots/admin-schedule.png)
+
+### Secure Administrator Login
+
+Administrative functionality is protected through Firebase Authentication and Firestore authorization rules.
+
+![Admin Login](docs/screenshots/admin-login.png)
+
