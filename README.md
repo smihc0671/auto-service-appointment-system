@@ -1,154 +1,221 @@
-# Oto Servis Randevu - MVP
+﻿# Auto Service Appointment System
 
-Bu paket, mevcut Vite + React projesine kopyalanmak üzere hazırlanmıştır.
-Müşteriler giriş yapmadan randevu oluşturur; yalnız yetkili iki yönetici randevuları görebilir.
+A web-based automotive service appointment and workshop management system developed for a real automotive service business.
 
-## 1. Dosyaları projeye kopyala
+The application allows customers to schedule service appointments online while providing administrators with tools to manage appointments, service availability, vehicle-specific operations and workshop capacity.
 
-Bu paketteki `src`, `public`, `index.html`, `firebase.json`, `firestore.rules`, `firestore.indexes.json` ve `.env.example` dosyalarını mevcut `oto-randevu` proje klasörüne kopyala.
+## Overview
 
-## 2. Firebase paketini kur
+The system was designed for **Saygılı Ford**, an automotive repair and maintenance workshop.
 
-PowerShell:
+Customers can create appointments without creating an account. Available appointment times are calculated dynamically according to workshop capacity, service duration, vehicle model and existing reservations.
 
-```powershell
-npm.cmd install firebase
+Administrators have a protected management panel where appointments, service configurations and workshop settings can be managed.
+
+## Key Features
+
+### Customer
+
+- Online appointment creation
+- No customer account required
+- Ford model selection
+- Vehicle year, mileage, fuel type and license plate information
+- Service selection based on vehicle model
+- Dynamic appointment availability
+- Past dates and unavailable time slots automatically disabled
+- Workshop capacity control
+- Appointment notes
+- Responsive interface for desktop and mobile devices
+
+### Administrator
+
+- Firebase Authentication based admin login
+- Appointment management dashboard
+- Appointment status management
+- Service activation and deactivation
+- Vehicle-model-specific service configuration
+- Configurable service durations
+- Workshop resource and capacity management
+- Working day and schedule configuration
+- Customer appointment overview
+
+## Scheduling System
+
+The scheduling engine prevents overlapping reservations by dividing service durations into reservation units.
+
+Available appointment times are calculated using:
+
+- Selected vehicle model
+- Selected service
+- Service duration
+- Workshop working hours
+- Existing reservations
+- Available workshop resources
+
+The system prevents multiple appointments from occupying the same workshop resource at the same time.
+
+## Technologies
+
+- React
+- Vite
+- JavaScript
+- Firebase Authentication
+- Cloud Firestore
+- Firebase Hosting
+- HTML
+- CSS
+- Playwright
+- ESLint
+
+## Project Structure
+
+```text
+auto-service-appointment-system
+├── public
+├── src
+│   ├── components
+│   ├── config
+│   ├── pages
+│   ├── services
+│   └── utils
+├── tests
+│   ├── e2e
+│   └── security
+├── firebase.json
+├── firestore.rules
+├── firestore.indexes.json
+├── playwright.config.js
+├── vite.config.js
+└── package.json
 ```
 
-## 3. Firebase projesi oluştur
+## Firebase Architecture
 
-Firebase Console'da yeni proje oluştur ve Web App ekle. Sana verilen `firebaseConfig` değerlerini kullan.
+The application uses Firebase for backend services.
 
-Proje kökünde `.env.local` oluştur:
+### Firebase Authentication
+
+Administrator access is protected using Firebase Authentication.
+
+### Cloud Firestore
+
+Firestore stores application data such as:
+
+- Appointments
+- Reservation units
+- Service planning
+- Workshop settings
+- Administrator authorization records
+
+Firestore Security Rules separate customer and administrator permissions.
+
+Customers can create validated appointments but cannot read customer appointment records.
+
+Administrative operations require an authenticated and authorized administrator account.
+
+## Security
+
+The project includes Firestore Security Rules designed to enforce:
+
+- Administrator-only appointment access
+- Administrator-only configuration changes
+- Validated customer appointment creation
+- Restricted document updates
+- Protected administrator records
+- Server-generated timestamps
+- Reservation and capacity validation
+
+Sensitive local environment files are excluded from version control.
+
+## Environment Configuration
+
+Create a `.env.local` file based on `.env.example`.
 
 ```env
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
+VITE_FIREBASE_API_KEY=YOUR_API_KEY
+VITE_FIREBASE_AUTH_DOMAIN=YOUR_AUTH_DOMAIN
+VITE_FIREBASE_PROJECT_ID=YOUR_PROJECT_ID
+VITE_FIREBASE_STORAGE_BUCKET=YOUR_STORAGE_BUCKET
+VITE_FIREBASE_MESSAGING_SENDER_ID=YOUR_MESSAGING_SENDER_ID
+VITE_FIREBASE_APP_ID=YOUR_APP_ID
 ```
 
-Not: Firebase web yapılandırması tarayıcıda bulunabilir; veri güvenliği Firestore Rules ve yönetici yetkilendirmesiyle sağlanır. `.env.local` yine de Git'e eklenmemelidir.
+The `.env.local` file must not be committed to Git.
 
-## 4. Firestore oluştur
+## Installation
 
-Firebase Console -> Firestore Database -> Create database.
+Install project dependencies:
 
-Ardından Rules sekmesine bu projedeki `firestore.rules` içeriğini yapıştır ve Publish de.
-
-## 5. Yönetici hesaplarını oluştur
-
-Firebase Console -> Authentication -> Sign-in method -> Email/Password yöntemini aç.
-
-Authentication -> Users bölümünden yalnız kullanacağınız hesapları oluştur.
-
-Her kullanıcı için UID'yi kopyala.
-
-Firestore'da `admins` koleksiyonu oluştur. Belge ID'si kullanıcının UID'si olmalı.
-
-Örnek:
-
-```text
-admins
-  └── FIREBASE_UID
-       ├── active: true
-       └── name: "Semih"
+```bash
+npm install
 ```
 
-Baban için de ikinci UID ile aynı şekilde belge oluştur.
+Start the development server:
 
-## 6. Dükkan bilgilerini düzenle
-
-`src/config/shopConfig.js` dosyasını aç.
-
-Buradan:
-- Dükkan adı
-- Açıklama
-- Telefon
-- Adres
-- Çalışma günleri
-- Çalışma saatleri
-- Randevu aralığı
-- Hizmet listesi
-
-değiştirilebilir.
-
-## 7. Local çalıştır
-
-```powershell
-npm.cmd run dev
+```bash
+npm run dev
 ```
 
-Müşteri ekranı:
+Create a production build:
 
-```text
-http://localhost:5173/
+```bash
+npm run build
 ```
 
-Yönetim ekranı:
+## Testing
 
-```text
-http://localhost:5173/yonetim
+The project includes automated tests implemented with Playwright.
+
+Test coverage includes:
+
+- Customer booking flow
+- Form validation
+- Admin authentication
+- Admin settings interface
+- Scheduling logic
+- Date and time logic
+- Responsive user interface
+- Firebase security checks
+- Live end-to-end appointment flow
+
+Run the Playwright test suite with:
+
+```bash
+npx playwright test
 ```
 
-## 8. Üretim build'i
+Additional testing information is available in:
 
-```powershell
-npm.cmd run build
+**[TEST_REHBERI.md](TEST_REHBERI.md)**
+
+## Deployment
+
+The application supports deployment with Firebase Hosting.
+
+Build the project:
+
+```bash
+npm run build
 ```
 
-Başarılı olursa `dist` klasörü oluşur.
+Then deploy using the Firebase CLI:
 
-## 9. Firebase Hosting'e yayınlama
-
-Firebase CLI kur:
-
-```powershell
-npm.cmd install -g firebase-tools
-firebase.cmd login
-firebase.cmd use --add
-firebase.cmd deploy
+```bash
+firebase deploy
 ```
 
-PowerShell execution policy nedeniyle `firebase` çalışmazsa `firebase.cmd` kullan.
+## Purpose
 
-## Sistem davranışı
+This project demonstrates the development of a real-world appointment management system with:
 
-### Müşteri
-- Üye olmaz.
-- Ad, telefon, araç, plaka, işlem, tarih ve saat seçer.
-- Dolu saatleri seçemez.
-- Aynı saate iki kişinin aynı anda kayıt yapması Firestore slot belgesi ile engellenir.
-- Başarılı kayıttan sonra kısa randevu kodu görür.
+- Dynamic scheduling
+- Cloud database integration
+- Authentication and authorization
+- Firestore security rules
+- Responsive frontend development
+- Automated end-to-end testing
+- Real-world business workflow modeling
 
-### Yönetici
-- E-posta + şifre ile giriş yapar.
-- Ayrıca UID'sinin Firestore `admins` koleksiyonunda `active: true` olması gerekir.
-- Tarihe göre randevuları görür.
-- Bekliyor / Onaylandı / Tamamlandı / İptal Edildi durumlarını yönetir.
-- İptal edilen randevunun saati yeniden müşterilere açılır.
-- Randevuyu kalıcı olarak silebilir.
-- Müşteri sayfasının linkini kopyalayabilir.
+## Developer
 
-## Güvenlik özeti
-
-- `appointments` koleksiyonunu müşteriler okuyamaz.
-- Müşteri yalnız yeni randevu oluşturabilir.
-- `slots` koleksiyonunda kişisel veri tutulmaz ve yalnız dolu saat bilgisini sağlar.
-- Yönetim erişimi sadece Auth hesabı + `admins/{uid}` belgesi bulunan kullanıcıya verilir.
-- Yönetici kaydı istemci tarafından oluşturulamaz veya değiştirilemez.
-
-## İlk test listesi
-
-1. Müşteri sayfası açılıyor mu?
-2. Kapalı gün seçildiğinde saatler kapanıyor mu?
-3. Randevu oluşturuluyor mu?
-4. Aynı saat ikinci kez alınamıyor mu?
-5. Yönetici olmayan hesap `/yonetim` verilerini göremiyor mu?
-6. Yönetici randevuyu görebiliyor mu?
-7. Randevu iptal edilince saat yeniden açılıyor mu?
-8. Randevu silinince ilgili slot da siliniyor mu?
-9. Telefon ekranında sayfa düzgün görünüyor mu?
-10. `npm.cmd run build` hatasız tamamlanıyor mu?
+**Semih Can Kasar**
